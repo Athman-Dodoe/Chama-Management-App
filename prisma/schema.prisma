@@ -1,0 +1,101 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  TREASURER
+  MEMBER
+}
+
+enum ChamaRole {
+  CHAIRPERSON
+  TREASURER
+  SECRETARY
+  MEMBER
+}
+
+enum ChamaType {
+  MERRY_GO_ROUND
+  SAVINGS_AND_LOAN
+  INVESTMENT
+}
+
+enum Frequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+  EXITED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  phoneNumber  String   @unique // Canonical: 2547XXXXXXXX or 2541XXXXXXXX
+  nationalId   String?  @unique
+  role         UserRole @default(MEMBER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships   Membership[]
+  createdChamas Chama[]      @relation("ChamaCreator")
+
+  @@index([phoneNumber])
+  @@index([email])
+}
+
+model Chama {
+  id                    String    @id @default(uuid())
+  chamaCode             String    @unique // E.g. "CH01" for centralized Paybill prefix routing
+  name                  String
+  description           String?
+  registrationNumber    String?   @unique
+  type                  ChamaType @default(SAVINGS_AND_LOAN)
+  contributionFrequency Frequency @default(MONTHLY)
+  contributionAmount    Decimal   @db.Decimal(12, 2)
+  payoutOrderStrategy   String?   @default("SEQUENTIAL_ROTATION")
+  paybillNumber         String?   @default("600991")
+  createdById           String
+  createdBy             User      @relation("ChamaCreator", fields: [createdById], references: [id])
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  memberships Membership[]
+
+  @@index([chamaCode])
+  @@index([createdById])
+}
+
+model Membership {
+  id            String           @id @default(uuid())
+  userId        String
+  chamaId       String
+  memberNumber  String // Unique per Chama: e.g. "CH01-M001"
+  roleInChama   ChamaRole        @default(MEMBER)
+  status        MembershipStatus @default(ACTIVE)
+  rotationIndex Int? // Turn sequence for Merry-Go-Round
+  joinedAt      DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chama Chama @relation(fields: [chamaId], references: [id], onDelete: Cascade)
+
+  @@unique([chamaId, memberNumber])
+  @@unique([chamaId, userId])
+  @@index([memberNumber])
+  @@index([userId])
+  @@index([chamaId])
+}

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+
+# Os files
+.DS_Store
+
+# Certificates (keep dummy examples only)
+certs/*.cer
+!certs/*.example.cer
+
+# Prisma generated client / local database files
+prisma/*.db
+prisma/*.db-journal
+
+# Logs
+*.log
+
+# Build output & coverage
+dist/
+build/
+coverage/
