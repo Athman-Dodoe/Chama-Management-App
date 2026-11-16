@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "axios": "^1.21.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
@@ -29,7 +30,6 @@
     "nodemon": "^3.1.14",
     "prisma": "^6.19.3"
   },
-  
   "prisma": {
     "seed": "node prisma/seed.js"
   }
